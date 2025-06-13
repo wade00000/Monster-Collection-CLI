@@ -1,9 +1,9 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.dialects.sqlite import JSON
 from sqlalchemy.orm import relationship, declarative_base
+from database import Base 
 from datetime import datetime
 
-Base = declarative_base()
 
 class Player(Base):
     __tablename__ = 'players'
@@ -24,12 +24,14 @@ class MonsterSpecies(Base):
     __tablename__ = 'monster_species'
 
     id = Column(Integer, primary_key=True)
-    type = Column(String)
+    name = Column(String, unique=True)
+    type_id = Column(Integer, ForeignKey('types.id'))
     base_stats = Column(JSON)
     rarity = Column(String)
     abilities = Column(JSON)
 
     player_monsters = relationship("PlayerMonster", back_populates="species")
+    type_obj = relationship("Type", back_populates="monsters")
 
 
 class PlayerMonster(Base):
@@ -96,3 +98,35 @@ class PlayerAchievement(Base):
 
     player = relationship("Player", back_populates="achievements")
     achievement = relationship("Achievement", back_populates="player_achievements")
+
+#allows us to manage typos & duplicates with types and allow for relationships as opposed to being a column
+class Type(Base): 
+    __tablename__ = 'types'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, unique=True)
+
+    strengths = relationship(
+        "TypeEffectiveness",
+        foreign_keys="TypeEffectiveness.attacking_type_id",
+        back_populates="attacking_type"
+    )
+    weaknesses = relationship(
+        "TypeEffectiveness",
+        foreign_keys="TypeEffectiveness.defending_type_id",
+        back_populates="defending_type"
+    )
+
+    monsters = relationship("MonsterSpecies", back_populates="type_obj")
+
+class TypeEffectiveness(Base):
+    __tablename__ = 'type_effectiveness'
+
+    id = Column(Integer, primary_key=True)
+    attacking_type_id = Column(Integer, ForeignKey('types.id'))
+    defending_type_id = Column(Integer, ForeignKey('types.id'))
+    multiplier = Column(Integer)  # or Float
+
+    attacking_type = relationship("Type", foreign_keys=[attacking_type_id], back_populates="strengths")
+    defending_type = relationship("Type", foreign_keys=[defending_type_id], back_populates="weaknesses")
+
