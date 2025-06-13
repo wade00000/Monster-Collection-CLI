@@ -27,6 +27,13 @@ class MonsterSpecies(Base):
     name = Column(String, unique=True)
     type_id = Column(Integer, ForeignKey('types.id'))
     base_stats = Column(JSON)
+
+    # example stats I might use 
+    #    {
+    #   "hp": 50,
+    #   "attack": 65,
+    #   "defense": 40
+    #    }
     rarity = Column(String)
     abilities = Column(JSON)
 
@@ -44,6 +51,8 @@ class PlayerMonster(Base):
     level = Column(Integer)
     current_stats = Column(JSON)
     caught_at = Column(DateTime, default=datetime.utcnow)
+    xp = Column(Integer, default=0)
+
 
     owner = relationship("Player", back_populates="monsters")
     species = relationship("MonsterSpecies", back_populates="player_monsters")
