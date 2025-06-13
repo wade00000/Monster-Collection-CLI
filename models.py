@@ -1,0 +1,98 @@
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy.dialects.sqlite import JSON
+from sqlalchemy.orm import relationship, declarative_base
+from datetime import datetime
+
+Base = declarative_base()
+
+class Player(Base):
+    __tablename__ = 'players'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, unique=True)
+
+    monsters = relationship("PlayerMonster", back_populates="owner")
+    battles_as_player1 = relationship("Battle", foreign_keys="Battle.player1_id", back_populates="player1")
+    battles_as_player2 = relationship("Battle", foreign_keys="Battle.player2_id", back_populates="player2")
+    battles_won = relationship("Battle", foreign_keys="Battle.winner_id", back_populates="winner")
+    trades_sent = relationship("Trade", foreign_keys="Trade.sender_id", back_populates="sender")
+    trades_received = relationship("Trade", foreign_keys="Trade.receiver_id", back_populates="receiver")
+    achievements = relationship("PlayerAchievement", back_populates="player")
+
+
+class MonsterSpecies(Base):
+    __tablename__ = 'monster_species'
+
+    id = Column(Integer, primary_key=True)
+    type = Column(String)
+    base_stats = Column(JSON)
+    rarity = Column(String)
+    abilities = Column(JSON)
+
+    player_monsters = relationship("PlayerMonster", back_populates="species")
+
+
+class PlayerMonster(Base):
+    __tablename__ = 'player_monsters'
+
+    id = Column(Integer, primary_key=True)
+    player_id = Column(Integer, ForeignKey('players.id'))
+    species_id = Column(Integer, ForeignKey('monster_species.id'))
+    nickname = Column(String)
+    level = Column(Integer)
+    current_stats = Column(JSON)
+    caught_at = Column(DateTime, default=datetime.utcnow)
+
+    owner = relationship("Player", back_populates="monsters")
+    species = relationship("MonsterSpecies", back_populates="player_monsters")
+    trade = relationship("Trade", back_populates="monster", uselist=False)
+
+
+class Battle(Base):
+    __tablename__ = 'battles'
+
+    id = Column(Integer, primary_key=True)
+    player1_id = Column(Integer, ForeignKey('players.id'))
+    player2_id = Column(Integer, ForeignKey('players.id'))
+    winner_id = Column(Integer, ForeignKey('players.id'))
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    player1 = relationship("Player", foreign_keys=[player1_id], back_populates="battles_as_player1")
+    player2 = relationship("Player", foreign_keys=[player2_id], back_populates="battles_as_player2")
+    winner = relationship("Player", foreign_keys=[winner_id], back_populates="battles_won")
+
+
+class Trade(Base):
+    __tablename__ = 'trades'
+
+    id = Column(Integer, primary_key=True)
+    sender_id = Column(Integer, ForeignKey('players.id'))
+    receiver_id = Column(Integer, ForeignKey('players.id'))
+    monster_sent = Column(Integer, ForeignKey('player_monsters.id'))
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    sender = relationship("Player", foreign_keys=[sender_id], back_populates="trades_sent")
+    receiver = relationship("Player", foreign_keys=[receiver_id], back_populates="trades_received")
+    monster = relationship("PlayerMonster", back_populates="trade")
+
+
+class Achievement(Base):
+    __tablename__ = 'achievements'
+
+    id = Column(Integer, primary_key=True)
+    achievement_name = Column(String, unique=True)
+    description = Column(String)
+    unlock_condition = Column(String)
+
+    player_achievements = relationship("PlayerAchievement", back_populates="achievement")
+
+
+class PlayerAchievement(Base):
+    __tablename__ = 'player_achievements'
+
+    player_id = Column(Integer, ForeignKey('players.id'), primary_key=True)
+    achievement_name = Column(String, ForeignKey('achievements.achievement_name'), primary_key=True)
+    unlocked_at = Column(DateTime, default=datetime.utcnow)
+
+    player = relationship("Player", back_populates="achievements")
+    achievement = relationship("Achievement", back_populates="player_achievements")
