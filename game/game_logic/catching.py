@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from models import PlayerMonster, MonsterSpecies, Player
+from game.models import PlayerMonster, MonsterSpecies, Player
 import random
 
 def calculate_catch_rate(species_rarity, player_level) -> float:
@@ -18,9 +18,16 @@ def catch_monster(session: Session, player_id: int, species_id: int) -> bool:
     if not species or not player:
         return False
 
-    catch_chance = calculate_catch_rate(species.rarity, 1)  # assuming player_level = 1 for now
+    catch_chance = calculate_catch_rate(species.rarity, player.level) 
     if random.random() <= catch_chance:
-        new_monster = PlayerMonster(player_id=player_id, monster_species_id=species_id, nickname=species.name, level=1)
+        new_monster = PlayerMonster(
+            player_id=player_id, 
+            species_id=species_id, 
+            nickname=species.name, 
+            level=1,
+            current_stats=species.base_stats  # Important cause levelling broke at some point without it 💀
+            )
+        
         session.add(new_monster)
         session.commit()
         return True

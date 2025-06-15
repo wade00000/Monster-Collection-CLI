@@ -1,4 +1,4 @@
-from models import PlayerMonster
+from game.models import PlayerMonster
 
 def get_player_collection(session, player_id: int) -> list:
     collection = (

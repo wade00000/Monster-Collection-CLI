@@ -1,6 +1,6 @@
 # trade_social_system.py
 from sqlalchemy.orm import Session
-from models import Player, PlayerMonster, Trade
+from game.models import Player, PlayerMonster, Trade
 from datetime import datetime
 from collections import defaultdict
 
@@ -36,6 +36,37 @@ def accept_trade(session: Session, trade_id: int):
     session.commit()
     print(f"Trade accepted! Monster {monster.id} now belongs to Player {receiver.id}.")
     return monster
+
+
+def resolve_trade_monsters(session, player):
+    target_username = input("Enter the username of the player you want to trade with: ").strip()
+    target_player = session.query(Player).filter_by(username=target_username).first()
+    if not target_player:
+        print("❗ Player not found.")
+        return
+
+    # List player’s monsters
+    player_monsters = session.query(PlayerMonster).filter_by(player_id=player.id).all()
+    if not player_monsters:
+        print("❗ You don’t have any monsters to trade!")
+        return
+
+    print("\nYour Monsters:")
+    for idx, pm in enumerate(player_monsters, 1):
+        species = session.query(MonsterSpecies).filter_by(id=pm.species_id).first()
+        print(f"{idx}. {pm.nickname} (Species: {species.name}, Level: {pm.level})")
+
+    try:
+        choice = int(input("Enter the number of the monster you want to trade: "))
+        selected_monster = player_monsters[choice - 1]
+    except (ValueError, IndexError):
+        print("❗ Invalid choice.")
+        return
+
+    selected_monster.player_id = target_player.id
+    session.commit()
+    print(f"🔄 Traded {selected_monster.nickname} to {target_player.username}!")
+
 
 # --- SOCIAL SYSTEM ---
 def add_friend(player: Player, friend: Player):

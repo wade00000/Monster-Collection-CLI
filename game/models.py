@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.dialects.sqlite import JSON
-from sqlalchemy.orm import relationship, declarative_base
-from database import Base 
+from sqlalchemy.orm import relationship
+from game.database import Base 
 from datetime import datetime
 
 
@@ -10,6 +10,9 @@ class Player(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String, unique=True)
+    level = Column(Integer, default=1)
+    xp = Column(Integer, default=0)
+    money = Column(Integer, default=0)
 
     monsters = relationship("PlayerMonster", back_populates="owner")
     battles_as_player1 = relationship("Battle", foreign_keys="Battle.player1_id", back_populates="player1")
@@ -18,6 +21,29 @@ class Player(Base):
     trades_sent = relationship("Trade", foreign_keys="Trade.sender_id", back_populates="sender")
     trades_received = relationship("Trade", foreign_keys="Trade.receiver_id", back_populates="receiver")
     achievements = relationship("PlayerAchievement", back_populates="player")
+
+    def gain_experience(self, amount):
+        self.xp += amount
+        leveled_up = False
+        while self.xp >= self.required_experience():
+            self.xp -= self.required_experience()
+            self.level += 1
+            self.money += 50
+            leveled_up = True
+        return leveled_up
+
+    def required_experience(self):
+        return 100 * self.level
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'username': self.name,
+            'level': self.level,
+            'xp': self.experience,
+            'money': self.money
+        }
+    
 
 
 class MonsterSpecies(Base):

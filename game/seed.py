@@ -2,8 +2,8 @@
 
 from faker import Faker
 from sqlalchemy.orm import sessionmaker
-from models import Player, MonsterSpecies, Achievement, Type
-from database import engine
+from game.models import Player, MonsterSpecies, Achievement, Type
+from game.database import engine
 from datetime import datetime
 
 Session = sessionmaker(bind=engine)
@@ -33,7 +33,7 @@ PREDEFINED_MONSTERS = [
 ]
 
 def reset_database():
-    from models import Base 
+    from game.models import Base 
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     print("Database reset complete.")
