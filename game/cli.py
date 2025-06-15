@@ -1,4 +1,4 @@
-import sys
+import sys , os
 from game.game_logic.catching import catch_monster
 from game.cli_helpers import get_random_species, create_player_flow, login_player_flow
 from game.models import PlayerMonster, MonsterSpecies, Player
@@ -84,7 +84,7 @@ def view_collection (session, player):
         print("❗You don’t have any monsters yet. Go explore!")
         return
 
-    print(f"{player.username}'s Collection:")
+    print(f"{player.name}'s Collection:")
     for pm in player_monsters:
         species = session.query(MonsterSpecies).filter_by(id=pm.species_id).first()
         print(f"- {pm.nickname} (Species: {species.name}, Level: {pm.level})")
@@ -98,7 +98,7 @@ def battle_wild_monster(session, player):
 def battle_player(session, player):
     print("⚔️ Initiating battle against another player...")
     opponent_username = input("Enter opponent's username: ").strip()
-    opponent = session.query(Player).filter_by(username=opponent_username).first()
+    opponent = session.query(Player).filter_by(name=opponent_username).first()
     if not opponent:
         print("❗ Opponent not found.")
         return
@@ -113,14 +113,28 @@ def gym_challenge(session, player):
     resolve_gym_challenge(session, player)
 
 def view_profile(session, player):
-    print(f"\n👤 Profile for {player.username}")
+    print(f"\n👤 Profile for {player.name}")
     print(f"- Level: {player.level}")
     print(f"- XP: {player.xp}")
     print("- Monsters caught: ", session.query(PlayerMonster).filter_by(player_id=player.id).count())
 
+
+def clear_screen():
+    os.system('cls' if os.name == 'nt' else 'clear')
+
 def run_game_cli(session):
     current_player = [None]
+
     while True:
+        clear_screen()
         display_main_menu()
         choice = input("Enter your choice: ").strip()
+        clear_screen() # clears the terminal so you can be able to focus on output
+
         handle_menu_choice(choice, session, current_player)
+
+        if choice == '10':  # Exit selected
+            print("\nThanks for playing Monster Collector CLI! 👋")
+            break
+
+        input("\nPress Enter to return to the main menu...")

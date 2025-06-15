@@ -1,6 +1,6 @@
 # trade_social_system.py
 from sqlalchemy.orm import Session
-from game.models import Player, PlayerMonster, Trade
+from game.models import Player, PlayerMonster, Trade,MonsterSpecies
 from datetime import datetime
 from collections import defaultdict
 
@@ -40,7 +40,7 @@ def accept_trade(session: Session, trade_id: int):
 
 def resolve_trade_monsters(session, player):
     target_username = input("Enter the username of the player you want to trade with: ").strip()
-    target_player = session.query(Player).filter_by(username=target_username).first()
+    target_player = session.query(Player).filter_by(name=target_username).first()
     if not target_player:
         print("❗ Player not found.")
         return
@@ -65,7 +65,7 @@ def resolve_trade_monsters(session, player):
 
     selected_monster.player_id = target_player.id
     session.commit()
-    print(f"🔄 Traded {selected_monster.nickname} to {target_player.username}!")
+    print(f"🔄 Traded {selected_monster.nickname} to {target_player.name}!")
 
 
 # --- SOCIAL SYSTEM ---

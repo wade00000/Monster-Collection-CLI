@@ -53,7 +53,7 @@ class MonsterSpecies(Base):
     name = Column(String, unique=True)
     type_id = Column(Integer, ForeignKey('types.id'))
     base_stats = Column(JSON)
-
+    base_level = Column(Integer, nullable=False, default=1)
     # example stats I might use 
     #    {
     #   "hp": 50,

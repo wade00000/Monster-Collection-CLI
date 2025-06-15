@@ -93,7 +93,7 @@ def battle_vs_ai(session: Session, player, player_monsters):
     session.add(battle)
     session.commit()
 
-    print(f"\n⚔️  {player.username} vs AI ⚔️\n")
+    print(f"\n⚔️  {player. name} vs AI ⚔️\n")
 
     player_wins = 0
     ai_wins = 0
@@ -201,17 +201,17 @@ def resolve_battle_player(session, player, opponent):
     player_monster = random.choice(player_monsters)
     opponent_monster = random.choice(opponent_monsters)
 
-    print(f"⚔️ {player.username}'s {player_monster.nickname} (Lv {player_monster.level}) vs {opponent.username}'s {opponent_monster.nickname} (Lv {opponent_monster.level})!")
+    print(f"⚔️ {player. name}'s {player_monster.nickname} (Lv {player_monster.level}) vs {opponent. name}'s {opponent_monster.nickname} (Lv {opponent_monster.level})!")
 
     player_power = player_monster.level + random.randint(0, 5)
     opponent_power = opponent_monster.level + random.randint(0, 5)
 
     if player_power >= opponent_power:
-        print(f"🏆 {player.username} wins!")
+        print(f"🏆 {player. name} wins!")
         player.xp += 20
         session.commit()
     else:
-        print(f"❗ {opponent.username} wins!")
+        print(f"❗ {opponent. name} wins!")
 
 
 def resolve_battle_player(session, player, opponent):
@@ -228,17 +228,17 @@ def resolve_battle_player(session, player, opponent):
     player_monster = random.choice(player_monsters)
     opponent_monster = random.choice(opponent_monsters)
 
-    print(f"⚔️ {player.username}'s {player_monster.nickname} (Lv {player_monster.level}) vs {opponent.username}'s {opponent_monster.nickname} (Lv {opponent_monster.level})!")
+    print(f"⚔️ {player. name}'s {player_monster.nickname} (Lv {player_monster.level}) vs {opponent. name}'s {opponent_monster.nickname} (Lv {opponent_monster.level})!")
 
     player_power = player_monster.level + random.randint(0, 5)
     opponent_power = opponent_monster.level + random.randint(0, 5)
 
     if player_power >= opponent_power:
-        print(f"🏆 {player.username} wins!")
+        print(f"🏆 {player. name} wins!")
         player.xp += 20
         session.commit()
     else:
-        print(f"❗ {opponent.username} wins!")
+        print(f"❗ {opponent. name} wins!")
 
 
 def resolve_gym_challenge(session, player):
