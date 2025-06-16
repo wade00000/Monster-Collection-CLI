@@ -13,6 +13,9 @@ def calculate_catch_rate(species_rarity, player_level) -> float:
     return min(1.0, base_rate + (player_level * 0.01))  # Cap at 1.0/100% so it doesnt go higher
 
 def catch_monster(session: Session, player_id: int, species_id: int) -> bool:
+    """
+    Attempts to catch a monster for a player. Returns True if the monster is successfully caught, otherwise False.
+    """
     species = session.query(MonsterSpecies).filter_by(id=species_id).first()
     player = session.query(Player).filter_by(id=player_id).first()
     if not species or not player:

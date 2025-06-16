@@ -95,7 +95,7 @@ def add_xp_to_player(session, player_id, xp_amount) -> dict:
 
     return {
         "id": player.id,
-        "username": player.username,
+        "username": player.name,
         "level": player.level,
         "xp": player.xp,
         "money": player.money,

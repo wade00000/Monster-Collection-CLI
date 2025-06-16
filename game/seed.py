@@ -2,9 +2,39 @@
 
 from faker import Faker
 from sqlalchemy.orm import sessionmaker
-from game.models import Player, MonsterSpecies, Achievement, Type
+from game.models import Player, MonsterSpecies, Achievement, Type,PlayerMonster
 from game.database import engine
 from datetime import datetime
+import random
+
+
+def create_random_player_monsters(player, session, min_monsters=2, max_monsters=4):
+    species_list = session.query(MonsterSpecies).all()
+    num_monsters = random.randint(min_monsters, max_monsters)
+
+    for _ in range(num_monsters):
+        species = random.choice(species_list)
+        mon_level = max(1, player.level + random.randint(-2, 2))  # keep it >= 1
+
+        # Example stat scaling: base_stat + level * some_factor
+        scaled_stats = {
+            "hp": species.base_stats["hp"] + (mon_level * 2),
+            "attack": species.base_stats["attack"] + (mon_level * 2),
+            "defense": species.base_stats["defense"] + (mon_level * 2),
+            "speed": species.base_stats["speed"] + (mon_level)
+        }
+
+        monster = PlayerMonster(
+            player=player,
+            species=species,
+            nickname=species.name,  # or random nickname if you want
+            level=mon_level,
+            xp=0,
+            current_hp=scaled_stats["hp"],
+            current_stats=scaled_stats
+        )
+        session.add(monster)
+
 
 Session = sessionmaker(bind=engine)
 session = Session()
@@ -62,9 +92,24 @@ def seed_monster_species():
 def seed_players(n):
     players = []
     for _ in range(n):
-        player = Player(name=fake.unique.first_name())
+        level = random.randint(1, 10)
+        xp = random.randint(0, level * 20)
+
+        player = Player(
+            name=fake.unique.first_name(),
+            level=level,
+            xp=xp,
+            money=random.randint(50, 200)  # Give them some starting money
+        )
         session.add(player)
         players.append(player)
+    
+    session.commit()
+
+    # After players are committed, add monsters
+    for player in players:
+        create_random_player_monsters(player, session)
+
     session.commit()
     return players
 
@@ -78,6 +123,34 @@ def seed_achievements():
     ]
     session.add_all(achievements)
     session.commit()
+
+
+def create_random_player_monsters(player, session, min_monsters=2, max_monsters=4):
+    species_list = session.query(MonsterSpecies).all()
+    num_monsters = random.randint(min_monsters, max_monsters)
+
+    for _ in range(num_monsters):
+        species = random.choice(species_list)
+        mon_level = max(1, player.level + random.randint(-2, 2))  # keep it >= 1
+
+        # Example stat scaling: base_stat + level * some_factor
+        scaled_stats = {
+            "hp": species.base_stats["hp"] + (mon_level * 2),
+            "attack": species.base_stats["attack"] + (mon_level * 2),
+            "defense": species.base_stats["defense"] + (mon_level * 2),
+            "speed": species.base_stats["speed"] + (mon_level)
+        }
+
+        monster = PlayerMonster(
+            owner=player,
+            species=species,
+            nickname=species.name,  # or random nickname if you want
+            level=mon_level,
+            xp=0,
+            current_stats=scaled_stats
+        )
+        session.add(monster)
+
 
 def seed():
     reset_database()

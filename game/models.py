@@ -1,8 +1,22 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime,Table
 from sqlalchemy.dialects.sqlite import JSON
 from sqlalchemy.orm import relationship
 from game.database import Base 
 from datetime import datetime
+
+# --- Association Tables --- (for friend rival system)
+
+friend_association = Table(
+    'friend_association', Base.metadata,
+    Column('player_id', Integer, ForeignKey('players.id')),
+    Column('friend_id', Integer, ForeignKey('players.id'))
+)
+
+rival_association = Table(
+    'rival_association', Base.metadata,
+    Column('player_id', Integer, ForeignKey('players.id')),
+    Column('rival_id', Integer, ForeignKey('players.id'))
+)
 
 
 class Player(Base):
@@ -13,6 +27,22 @@ class Player(Base):
     level = Column(Integer, default=1)
     xp = Column(Integer, default=0)
     money = Column(Integer, default=0)
+
+    friends = relationship(
+        "Player",
+        secondary=friend_association,
+        primaryjoin=id==friend_association.c.player_id,
+        secondaryjoin=id==friend_association.c.friend_id,
+        backref="friend_of"
+    )
+
+    rivals = relationship(
+        "Player",
+        secondary=rival_association,
+        primaryjoin=id==rival_association.c.player_id,
+        secondaryjoin=id==rival_association.c.rival_id,
+        backref="rival_of"
+    )
 
     monsters = relationship("PlayerMonster", back_populates="owner")
     battles_as_player1 = relationship("Battle", foreign_keys="Battle.player1_id", back_populates="player1")
@@ -54,12 +84,6 @@ class MonsterSpecies(Base):
     type_id = Column(Integer, ForeignKey('types.id'))
     base_stats = Column(JSON)
     base_level = Column(Integer, nullable=False, default=1)
-    # example stats I might use 
-    #    {
-    #   "hp": 50,
-    #   "attack": 65,
-    #   "defense": 40
-    #    }
     rarity = Column(String)
     abilities = Column(JSON)
 
@@ -128,7 +152,7 @@ class PlayerAchievement(Base):
     __tablename__ = 'player_achievements'
 
     player_id = Column(Integer, ForeignKey('players.id'), primary_key=True)
-    achievement_name = Column(String, ForeignKey('achievements.achievement_name'), primary_key=True)
+    achievement_id = Column(Integer, ForeignKey('achievements.id'), primary_key=True)
     unlocked_at = Column(DateTime, default=datetime.utcnow)
 
     player = relationship("Player", back_populates="achievements")

@@ -69,12 +69,40 @@ def resolve_trade_monsters(session, player):
 
 
 # --- SOCIAL SYSTEM ---
-def add_friend(player: Player, friend: Player):
-    if not hasattr(player, 'friends'):
-        player.friends = []
-    if friend not in player.friends:
-        player.friends.append(friend)
-        print(f"{friend.name} added as a friend.")
+def add_friend(session, player: Player, friend_name: str):
+    friend = session.query(Player).filter_by(name=friend_name).first()
+
+    if not friend:
+        print("❗ No such player found.")
+        return
+    if player.id == friend.id:
+        print("❗ You can’t be your own friend.")
+        return
+    if friend in player.friends:
+        print(f"✅ {friend.name} is already your friend.")
+        return
+
+    player.friends.append(friend)
+    session.commit()
+    print(f"👯 {friend.name} added as a friend!")
+
+def add_rival(session, player: Player, rival_name: str):
+    rival = session.query(Player).filter_by(name=rival_name).first()
+
+   
+    if not rival:
+        print("❗ No such player found.")
+        return
+    if player.id == rival.id:
+        print("❗ You can’t be your own friend.")
+        return
+    if rival in player.rivals:
+        print(f"⚔️ {rival.name} is already your rival.")
+        return
+
+    player.rivals.append(rival)
+    session.commit()
+    print(f"💢 {rival.name} added as a rival!")
 
 # --- LEADERBOARDS ---
 def get_leaderboard_by_monster_count(session: Session):
