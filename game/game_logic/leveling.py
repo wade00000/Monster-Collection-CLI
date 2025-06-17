@@ -1,7 +1,10 @@
 from game.models import Player, PlayerMonster
 
 def level_up_monster(session, player_monster_id) -> dict:
-    """Force level-up for a monster (bypasses XP)."""
+    """
+    Force level-up for a monster (bypasses XP).
+    
+    """
     monster = session.query(PlayerMonster).filter_by(id=player_monster_id).first()
     if not monster:
         return {"success": False, "error": "Monster not found."}
@@ -21,7 +24,10 @@ def level_up_monster(session, player_monster_id) -> dict:
     }
 
 def calculate_stats(session, player_monster_id) -> dict:
-    """Recalculate and update monster stats based on level."""
+    """
+    Recalculate and update monster stats based on level.
+    
+    """
     monster = session.query(PlayerMonster).filter_by(id=player_monster_id).first()
     if not monster:
         return {"error": "Monster not found."}
@@ -44,11 +50,17 @@ def calculate_stats(session, player_monster_id) -> dict:
     return updated_stats
 
 def xp_to_next_monster_level(level: int) -> int:
-    """XP required for a monster to reach the next level."""
+    """
+    XP required for a monster to reach the next level.
+    
+    """
     return int(50 * (1.2 ** (level - 1)))
 
 def add_xp_to_monster(session, player_monster_id, xp_amount) -> dict:
-    """Add XP to a monster, handling level-ups and stat recalculation."""
+    """
+    Add XP to a monster, handling level-ups and stat recalculation.
+    
+    """
     monster = session.query(PlayerMonster).filter_by(id=player_monster_id).first()
     if not monster:
         return {"error": "Monster not found."}
@@ -74,11 +86,15 @@ def add_xp_to_monster(session, player_monster_id, xp_amount) -> dict:
     }
 
 def xp_to_next_player_level(level: int) -> int:
-    """XP required for a player to reach the next level."""
+    """
+    XP required for a player to reach the next level.
+    """
     return int(100 * (1.3 ** (level - 1)))
 
 def add_xp_to_player(session, player_id, xp_amount) -> dict:
-    """Add XP to a player, handling level-ups."""
+    """
+    Add XP to a player, handling level-ups.
+    """
     player = session.query(Player).filter_by(id=player_id).first()
     if not player:
         return {"error": "Player not found."}

@@ -52,28 +52,6 @@ class Player(Base):
     trades_received = relationship("Trade", foreign_keys="Trade.receiver_id", back_populates="receiver")
     achievements = relationship("PlayerAchievement", back_populates="player")
 
-    def gain_experience(self, amount):
-        self.xp += amount
-        leveled_up = False
-        while self.xp >= self.required_experience():
-            self.xp -= self.required_experience()
-            self.level += 1
-            self.money += 50
-            leveled_up = True
-        return leveled_up
-
-    def required_experience(self):
-        return 100 * self.level
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'username': self.name,
-            'level': self.level,
-            'xp': self.experience,
-            'money': self.money
-        }
-    
 
 
 class MonsterSpecies(Base):
@@ -89,6 +67,7 @@ class MonsterSpecies(Base):
 
     player_monsters = relationship("PlayerMonster", back_populates="species")
     type_obj = relationship("Type", back_populates="monsters")
+
 
 
 class PlayerMonster(Base):
@@ -109,6 +88,7 @@ class PlayerMonster(Base):
     trade = relationship("Trade", back_populates="monster", uselist=False)
 
 
+
 class Battle(Base):
     __tablename__ = 'battles'
 
@@ -121,6 +101,7 @@ class Battle(Base):
     player1 = relationship("Player", foreign_keys=[player1_id], back_populates="battles_as_player1")
     player2 = relationship("Player", foreign_keys=[player2_id], back_populates="battles_as_player2")
     winner = relationship("Player", foreign_keys=[winner_id], back_populates="battles_won")
+
 
 
 class Trade(Base):
@@ -137,6 +118,7 @@ class Trade(Base):
     monster = relationship("PlayerMonster", back_populates="trade")
 
 
+
 class Achievement(Base):
     __tablename__ = 'achievements'
 
@@ -146,6 +128,7 @@ class Achievement(Base):
     unlock_condition = Column(String)
 
     player_achievements = relationship("PlayerAchievement", back_populates="achievement")
+
 
 
 class PlayerAchievement(Base):
@@ -158,7 +141,9 @@ class PlayerAchievement(Base):
     player = relationship("Player", back_populates="achievements")
     achievement = relationship("Achievement", back_populates="player_achievements")
 
-#allows us to manage typos & duplicates with types and allow for relationships as opposed to being a column
+
+
+#Allows us to manage typos & duplicates within types and allow for relationships as opposed to being a column
 class Type(Base): 
     __tablename__ = 'types'
 
@@ -178,14 +163,19 @@ class Type(Base):
 
     monsters = relationship("MonsterSpecies", back_populates="type_obj")
 
+    
+
 class TypeEffectiveness(Base):
     __tablename__ = 'type_effectiveness'
 
     id = Column(Integer, primary_key=True)
     attacking_type_id = Column(Integer, ForeignKey('types.id'))
     defending_type_id = Column(Integer, ForeignKey('types.id'))
-    multiplier = Column(Integer)  # or Float
+    multiplier = Column(Integer)  
 
     attacking_type = relationship("Type", foreign_keys=[attacking_type_id], back_populates="strengths")
     defending_type = relationship("Type", foreign_keys=[defending_type_id], back_populates="weaknesses")
+
+
+
 

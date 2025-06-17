@@ -3,12 +3,9 @@ from game.game_logic.catching import catch_monster
 from game.cli_helpers import get_random_species, create_player_flow, login_player_flow
 from game.models import PlayerMonster, MonsterSpecies, Player
 from game.game_logic.battle import resolve_battle_wild_monster, resolve_battle_player
-from game.game_logic.trade_social import resolve_trade_monsters,add_friend,add_rival
+from game.game_logic.trade_social import resolve_trade_monsters,add_friend,add_rival,show_leaderboards
 from game.game_logic.battle import resolve_gym_challenge
 from game.game_logic.achievements import check_and_unlock_achievements
-
-
-
 
 
 def display_main_menu():
@@ -27,8 +24,9 @@ def display_main_menu():
 11.View Friends and Rivals
 12.Add Friend
 13.Add Rival
+14.Show Leaderboard
                   
-14. Exit
+15. Exit
 ===========================================
 """)
 
@@ -43,7 +41,7 @@ def handle_menu_choice(choice, session, current_player):
         if player:
             current_player[0] = player
 
-    elif choice in ['3', '4', '5', '6', '7', '8', '9','10','11','12','13']:
+    elif choice in ['3', '4', '5', '6', '7', '8', '9','10','11','12','13','14']:
         if not current_player[0]:
             print("❗ You need to log in first!")
             return
@@ -72,9 +70,11 @@ def handle_menu_choice(choice, session, current_player):
         elif choice == '13':
             name = input("Enter the name of the rival to add: ").strip()
             add_rival(session, current_player[0], name)
+        elif choice == '14':
+            show_leaderboards(session)
 
 
-    elif choice == '14':
+    elif choice == '15':
         print("Thanks for playing!")
         sys.exit()
     else:
@@ -181,7 +181,7 @@ def run_game_cli(session):
 
         handle_menu_choice(choice, session, current_player)
 
-        if choice == '14':  # Exit selected
+        if choice == '15':  # Exit selected
             print("Thanks for playing Monster Collector CLI! 👋")
             break
 

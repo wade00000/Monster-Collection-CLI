@@ -3,6 +3,9 @@ from game.models import PlayerMonster, MonsterSpecies, Player
 import random
 
 def calculate_catch_rate(species_rarity, player_level) -> float:
+    """
+    Calculates the chance of catching a monster based on its rarity and the player's level.
+    """
     base_rates = {
         "Common": 0.9,
         "Uncommon": 0.7,
@@ -29,7 +32,7 @@ def catch_monster(session: Session, player_id: int, species_id: int) -> bool:
             nickname=species.name, 
             level=1,
             current_stats=species.base_stats  # Important cause levelling broke at some point without it 💀
-            )
+        )
         
         session.add(new_monster)
         session.commit()

@@ -1,11 +1,16 @@
-# trade_social_system.py
 from sqlalchemy.orm import Session
-from game.models import Player, PlayerMonster, Trade,MonsterSpecies
+from sqlalchemy import func
 from datetime import datetime
-from collections import defaultdict
+
+from game.models import Player, PlayerMonster, Trade, MonsterSpecies, Battle
+
 
 # --- TRADE SYSTEM ---
-def propose_trade(session: Session, sender_id: int, receiver_id: int, monster_sent_id: int):
+
+def propose_trade(session: Session, sender_id: int, receiver_id: int, monster_sent_id: int) -> Trade:
+    """
+    Creates and commits a trade proposal from one player to another.
+    """
     trade = Trade(
         sender_id=sender_id,
         receiver_id=receiver_id,
@@ -17,7 +22,11 @@ def propose_trade(session: Session, sender_id: int, receiver_id: int, monster_se
     print(f"Trade proposed from Player {sender_id} to Player {receiver_id} for Monster {monster_sent_id}.")
     return trade
 
+
 def accept_trade(session: Session, trade_id: int):
+    """
+    Accepts a trade by transferring the monster to the receiver and deleting the trade.
+    """
     trade = session.query(Trade).get(trade_id)
     if not trade:
         print("Trade not found.")
@@ -38,14 +47,16 @@ def accept_trade(session: Session, trade_id: int):
     return monster
 
 
-def resolve_trade_monsters(session, player):
+def resolve_trade_monsters(session: Session, player: Player):
+    """
+    Handles the CLI flow for initiating a monster trade with another player.
+    """
     target_username = input("Enter the username of the player you want to trade with: ").strip()
     target_player = session.query(Player).filter_by(name=target_username).first()
     if not target_player:
         print("❗ Player not found.")
         return
 
-    # List player’s monsters
     player_monsters = session.query(PlayerMonster).filter_by(player_id=player.id).all()
     if not player_monsters:
         print("❗ You don’t have any monsters to trade!")
@@ -69,7 +80,11 @@ def resolve_trade_monsters(session, player):
 
 
 # --- SOCIAL SYSTEM ---
-def add_friend(session, player: Player, friend_name: str):
+
+def add_friend(session: Session, player: Player, friend_name: str):
+    """
+    Adds another player as a friend if not already added.
+    """
     friend = session.query(Player).filter_by(name=friend_name).first()
 
     if not friend:
@@ -86,15 +101,18 @@ def add_friend(session, player: Player, friend_name: str):
     session.commit()
     print(f"👯 {friend.name} added as a friend!")
 
-def add_rival(session, player: Player, rival_name: str):
+
+def add_rival(session: Session, player: Player, rival_name: str):
+    """
+    Adds another player as a rival if not already marked as one.
+    """
     rival = session.query(Player).filter_by(name=rival_name).first()
 
-   
     if not rival:
         print("❗ No such player found.")
         return
     if player.id == rival.id:
-        print("❗ You can’t be your own friend.")
+        print("❗ You can’t be your own rival.")
         return
     if rival in player.rivals:
         print(f"⚔️ {rival.name} is already your rival.")
@@ -104,21 +122,53 @@ def add_rival(session, player: Player, rival_name: str):
     session.commit()
     print(f"💢 {rival.name} added as a rival!")
 
+
 # --- LEADERBOARDS ---
-def get_leaderboard_by_monster_count(session: Session):
-    players = session.query(Player).all()
-    rankings = sorted(players, key=lambda p: len(p.monsters), reverse=True)
-    print("\n📊 Leaderboard: Most Monsters")
-    for i, player in enumerate(rankings, 1):
-        print(f"{i}. {player.name} - {len(player.monsters)} monsters")
 
-def get_leaderboard_by_battle_wins(session: Session):
-    players = session.query(Player).all()
-    win_count = defaultdict(int)
-    for player in players:
-        win_count[player.name] = len(player.battles_won)
+def get_battle_wins_leaderboard(session: Session, limit: int = 10):
+    """
+    Returns top players by number of battle wins.
+    """
+    return (
+        session.query(
+            Player.name,
+            func.count(Battle.id).label("wins")
+        )
+        .join(Battle, Battle.winner_id == Player.id)
+        .group_by(Player.id)
+        .order_by(func.count(Battle.id).desc())
+        .limit(limit)
+        .all()
+    )
 
-    rankings = sorted(win_count.items(), key=lambda x: x[1], reverse=True)
-    print("\n🏆 Leaderboard: Battle Wins")
-    for i, (name, wins) in enumerate(rankings, 1):
-        print(f"{i}. {name} - {wins} wins")
+
+def get_collection_leaderboard(session: Session, limit: int = 10):
+    """
+    Returns top players by the size of their monster collection.
+    """
+    return (
+        session.query(
+            Player.name,
+            func.count(PlayerMonster.id).label("collection_size")
+        )
+        .join(PlayerMonster, Player.id == PlayerMonster.player_id)
+        .group_by(Player.id)
+        .order_by(func.count(PlayerMonster.id).desc())
+        .limit(limit)
+        .all()
+    )
+
+
+def show_leaderboards(session: Session):
+    """
+    Displays the top players for wins and collections to the CLI.
+    """
+    print("\n🏆 Battle Wins Leaderboard:")
+    for i, (username, wins) in enumerate(get_battle_wins_leaderboard(session), 1):
+        print(f"{i}. {username} - {wins} wins")
+
+    print("\n🐾 Monster Collection Leaderboard:")
+    for i, (username, collection_size) in enumerate(get_collection_leaderboard(session), 1):
+        print(f"{i}. {username} - {collection_size} monsters")
+
+    input("\nPress Enter to return to the main menu...")
